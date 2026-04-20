@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../services/api';
+import Loader from './Loader';
 
 const AdminPanel = () => {
     // Requests State
@@ -15,7 +16,7 @@ const AdminPanel = () => {
     useEffect(() => {
         const fetchRequests = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/api/request');
+                const res = await api.get('/request');
                 setRequests(res.data);
                 setLoading(false);
             } catch (err) {
@@ -26,7 +27,7 @@ const AdminPanel = () => {
 
         const fetchMedicines = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/api/medicine');
+                const res = await api.get('/medicine');
                 setMedicines(res.data);
             } catch (err) {
                 console.error('Error fetching inventory');
@@ -41,7 +42,7 @@ const AdminPanel = () => {
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure you want to delete this request?')) return;
         try {
-            await axios.delete(`http://localhost:5000/api/request/${id}`);
+            await api.delete(`/request/${id}`);
             setRequests(requests.filter(req => req._id !== id));
         } catch (err) {
             alert('Error deleting request');
@@ -51,7 +52,7 @@ const AdminPanel = () => {
     const handleStatusUpdate = async (id, currentStatus) => {
         const newStatus = currentStatus === 'Pending' ? 'Approved' : 'Pending';
         try {
-            const res = await axios.put(`http://localhost:5000/api/request/${id}`, { status: newStatus });
+            const res = await api.put(`/request/${id}`, { status: newStatus });
             setRequests(requests.map(req => req._id === id ? res.data : req));
         } catch (err) {
             alert('Error updating status');
@@ -62,7 +63,7 @@ const AdminPanel = () => {
     const handleAddMedicine = async (e) => {
         e.preventDefault();
         try {
-            const res = await axios.post('http://localhost:5000/api/medicine', newMedicine);
+            const res = await api.post('/medicine', newMedicine);
             setMedicines([...medicines, res.data]);
             setNewMedicine({ name: '', company: '' });
         } catch (err) {
@@ -72,7 +73,7 @@ const AdminPanel = () => {
 
     const handleStockToggle = async (id) => {
         try {
-            const res = await axios.put(`http://localhost:5000/api/medicine/${id}`);
+            const res = await api.put(`/medicine/${id}`);
             setMedicines(medicines.map(med => med._id === id ? res.data : med));
         } catch (err) {
             alert('Error updating stock status');
@@ -82,14 +83,14 @@ const AdminPanel = () => {
     const handleDeleteMedicine = async (id) => {
         if (!window.confirm('Delete this tablet from the entire catalog?')) return;
         try {
-            await axios.delete(`http://localhost:5000/api/medicine/${id}`);
+            await api.delete(`/medicine/${id}`);
             setMedicines(medicines.filter(med => med._id !== id));
         } catch (err) {
             alert('Error deleting medicine');
         }
     };
 
-    if (loading) return <div className="loading">Loading dashboard...</div>;
+    if (loading) return <Loader />;
     if (error) return <div className="alert alert-error">{error}</div>;
 
     return (

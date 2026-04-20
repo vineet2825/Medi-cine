@@ -2,7 +2,7 @@ const Request = require('../models/Request');
 
 // @desc    Get all requests
 // @route   GET /api/request
-// @access  Public
+// @access  Private/Admin
 const getRequests = async (req, res) => {
     try {
         const requests = await Request.find().sort({ createdAt: -1 });
@@ -14,10 +14,12 @@ const getRequests = async (req, res) => {
 
 // @desc    Create new request
 // @route   POST /api/request
-// @access  Public
+// @access  Private
 const createRequest = async (req, res) => {
     try {
-        const { userName, medicineName, companyName, quantity, requiredDate } = req.body;
+        const { medicineName, companyName, quantity, requiredDate } = req.body;
+        // Use authenticated user's name
+        const userName = req.user ? req.user.name : req.body.userName;
 
         if (!userName || !medicineName || !companyName || !quantity || !requiredDate) {
             return res.status(400).json({ message: 'Please add all required fields' });
@@ -40,7 +42,7 @@ const createRequest = async (req, res) => {
 
 // @desc    Update request status
 // @route   PUT /api/request/:id
-// @access  Public
+// @access  Private/Admin
 const updateRequest = async (req, res) => {
     try {
         const request = await Request.findById(req.params.id);
@@ -68,7 +70,7 @@ const updateRequest = async (req, res) => {
 
 // @desc    Delete request
 // @route   DELETE /api/request/:id
-// @access  Public
+// @access  Private/Admin
 const deleteRequest = async (req, res) => {
     try {
         const request = await Request.findById(req.params.id);
@@ -86,7 +88,7 @@ const deleteRequest = async (req, res) => {
 
 // @desc    Get requests by user
 // @route   GET /api/request/user/:userName
-// @access  Public
+// @access  Private
 const getUserRequests = async (req, res) => {
     try {
         // Case-insensitive regex search for username string

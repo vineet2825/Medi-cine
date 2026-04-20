@@ -1,36 +1,56 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import Loader from './Loader';
 
 const AddMedicine = () => {
+    const { user } = useAuth();
+    const [catalog, setCatalog] = useState([]);
     const [formData, setFormData] = useState({
-        userName: '',
         medicineName: '',
         companyName: '',
         quantity: '',
         requiredDate: ''
     });
     
-    const [catalog, setCatalog] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [submitLoading, setSubmitLoading] = useState(false);
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
 
     // History State
-    const [historySearchTerm, setHistorySearchTerm] = useState('');
+    const [historySearchTerm, setHistorySearchTerm] = useState(user?.name || '');
     const [userHistory, setUserHistory] = useState(null);
     const [historyLoading, setHistoryLoading] = useState(false);
 
     useEffect(() => {
         const fetchCatalog = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/api/medicine');
+                const res = await api.get('/medicine');
                 setCatalog(res.data);
+                setLoading(false);
             } catch (err) {
                 console.error("Could not fetch catalog");
+                setLoading(false);
             }
         };
+
+        const fetchMyHistory = async () => {
+            if (!user?.name) return;
+            setHistoryLoading(true);
+            try {
+                const res = await api.get(`/request/user/${user.name}`);
+                setUserHistory(res.data);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setHistoryLoading(false);
+            }
+        };
+
         fetchCatalog();
-    }, []);
+        fetchMyHistory();
+    }, [user]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -42,32 +62,29 @@ const AddMedicine = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
+        setSubmitLoading(true);
         setMessage('');
         setError('');
 
-        // Block request if user requests an explicit out-of-stock item based on our catalog
-        const match = catalog.find(m => m.name.toLowerCase() === formData.medicineName.toLowerCase());
-        if (match && !match.inStock) {
-            setError('We are sorry, but this tablet is currently Out of Stock.');
-            setLoading(false);
-            return;
-        }
-
         try {
-            await axios.post('http://localhost:5000/api/request', formData);
+            await api.post('/request', {
+                ...formData,
+                userName: user?.name
+            });
             setMessage('Medicine request submitted successfully!');
             setFormData({
-                userName: formData.userName, // Remember username for convenience
                 medicineName: '',
                 companyName: '',
                 quantity: '',
                 requiredDate: ''
             });
+            // Refresh history
+            const res = await api.get(`/request/user/${user.name}`);
+            setUserHistory(res.data);
         } catch (err) {
             setError(err.response?.data?.message || 'Error submitting request');
         } finally {
-            setLoading(false);
+            setSubmitLoading(false);
         }
     };
 
@@ -76,7 +93,7 @@ const AddMedicine = () => {
         if (!historySearchTerm.trim()) return;
         setHistoryLoading(true);
         try {
-            const res = await axios.get(`http://localhost:5000/api/request/user/${historySearchTerm}`);
+            const res = await api.get(`/request/user/${historySearchTerm}`);
             setUserHistory(res.data);
         } catch (err) {
             console.error(err);
@@ -86,14 +103,16 @@ const AddMedicine = () => {
         }
     };
 
+    if (loading) return <Loader fullPage />;
+
     return (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2rem', paddingBottom: '2rem' }}>
             
             {/* Catalog Section */}
-            <div className="card" style={{ maxWidth: '800px', width: '100%' }}>
-                <h2 className="card-title">Live Tablet Availability</h2>
+            <div className="admin-container" style={{ maxWidth: '900px', width: '95%' }}>
+                <h2 style={{ marginBottom: '1.5rem' }}>🏥 Live Tablet Availability</h2>
                 <div className="table-responsive">
-                    <table className="table" style={{ fontSize: '0.9rem' }}>
+                    <table className="table">
                         <thead>
                             <tr>
                                 <th>Medicine Name</th>
@@ -131,75 +150,99 @@ const AddMedicine = () => {
                 </div>
             </div>
 
-            {/* Form Section */}
-            <div className="card" style={{ maxWidth: '800px', width: '100%' }}>
-                <h2 className="card-title">Submit a Rapid Request</h2>
-                
+            {/* Request Form */}
+            <div className="auth-card" style={{ maxWidth: '900px', width: '95%' }}>
+                <h2 style={{ marginBottom: '1rem' }}>📝 Place New Request</h2>
                 {message && <div className="alert alert-success">{message}</div>}
                 {error && <div className="alert alert-error">{error}</div>}
 
                 <form onSubmit={handleSubmit} className="form">
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div className="grid-2">
                         <div className="form-group">
-                            <label>User / Pharmacist Name</label>
-                            <input type="text" name="userName" value={formData.userName} onChange={handleChange} required placeholder="Your name" />
-                        </div>
-                        <div className="form-group">
-                            <label>Requested Date</label>
-                            <input type="date" name="requiredDate" value={formData.requiredDate} onChange={handleChange} required />
-                        </div>
-                        <div className="form-group">
-                            <label>Medicine Name <em>(Select from above)</em></label>
-                            <input type="text" name="medicineName" value={formData.medicineName} onChange={handleChange} required placeholder="e.g. Paracetamol" />
+                            <label>Medicine Name</label>
+                            <input 
+                                type="text" 
+                                name="medicineName" 
+                                value={formData.medicineName} 
+                                onChange={handleChange} 
+                                required 
+                                placeholder="Select from above or type..." 
+                            />
                         </div>
                         <div className="form-group">
                             <label>Company Name</label>
-                            <input type="text" name="companyName" value={formData.companyName} onChange={handleChange} required placeholder="Manufacturer" />
+                            <input 
+                                type="text" 
+                                name="companyName" 
+                                value={formData.companyName} 
+                                onChange={handleChange} 
+                                required 
+                                placeholder="Manufacturer" 
+                            />
                         </div>
-                        <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                        <div className="form-group">
                             <label>Quantity Needed</label>
-                            <input type="number" name="quantity" value={formData.quantity} onChange={handleChange} required min="1" placeholder="e.g. 50 boxes" />
+                            <input 
+                                type="number" 
+                                name="quantity" 
+                                value={formData.quantity} 
+                                onChange={handleChange} 
+                                required 
+                                min="1" 
+                                placeholder="e.g. 50" 
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Required By Date</label>
+                            <input 
+                                type="date" 
+                                name="requiredDate" 
+                                value={formData.requiredDate} 
+                                onChange={handleChange} 
+                                required 
+                            />
                         </div>
                     </div>
                     
-                    <button type="submit" className="btn btn-primary" disabled={loading} style={{ marginTop: '1rem' }}>
-                        {loading ? 'Submitting...' : 'Submit Request securely'}
+                    <button type="submit" className="btn btn-primary" disabled={submitLoading} style={{ marginTop: '1.5rem' }}>
+                        {submitLoading ? 'Submitting...' : 'Submit Request Securely'}
                     </button>
                 </form>
             </div>
 
             {/* User History Section */}
-            <div className="card" style={{ maxWidth: '800px', width: '100%', marginTop: '1rem' }}>
-                <h2 className="card-title">Check Buying History</h2>
+            <div className="admin-container" style={{ maxWidth: '900px', width: '95%' }}>
+                <h2 style={{ marginBottom: '1.5rem' }}>📜 Your Request History</h2>
                 
-                <form onSubmit={handleHistorySearch} className="history-search-form">
+                <form onSubmit={handleHistorySearch} className="history-search-form" style={{ marginBottom: '2rem', display: 'flex', gap: '1rem' }}>
                     <input 
                         type="text" 
                         value={historySearchTerm} 
                         onChange={e => setHistorySearchTerm(e.target.value)} 
-                        placeholder="Enter your exact User Name to see your requests..." 
+                        placeholder="Search by User Name..." 
                         required 
+                        style={{ flex: 1, padding: '0.8rem', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.05)' }}
                     />
                     <button type="submit" className="btn btn-primary" style={{ width: 'auto' }} disabled={historyLoading}>
-                        {historyLoading ? '🔍 Searching...' : 'View My History'}
+                        {historyLoading ? 'Searching...' : 'Search History'}
                     </button>
                 </form>
 
                 {userHistory !== null && (
                     <div className="table-responsive">
-                        <table className="table" style={{ fontSize: '0.9rem' }}>
+                        <table className="table">
                             <thead>
                                 <tr>
-                                    <th>Medicine Name</th>
+                                    <th>Medicine</th>
                                     <th>Company</th>
                                     <th>Qty</th>
-                                    <th>Requested Date</th>
-                                    <th>Approval Status</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {userHistory.length === 0 ? (
-                                    <tr><td colSpan="5" className="text-center">No purchases or requests found under this name.</td></tr>
+                                    <tr><td colSpan="5" className="text-center">No history found.</td></tr>
                                 ) : userHistory.map(req => (
                                     <tr key={req._id}>
                                         <td><strong>{req.medicineName}</strong></td>
@@ -208,7 +251,7 @@ const AddMedicine = () => {
                                         <td>{new Date(req.requiredDate).toLocaleDateString()}</td>
                                         <td>
                                             <span className={`badge ${req.status.toLowerCase()}`}>
-                                                {req.status === 'Approved' ? 'Purchased / Approved' : req.status}
+                                                {req.status}
                                             </span>
                                         </td>
                                     </tr>

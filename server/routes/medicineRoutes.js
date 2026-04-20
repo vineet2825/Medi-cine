@@ -7,12 +7,14 @@ const {
     deleteMedicine
 } = require('../controllers/medicineController');
 
+const { protect, admin } = require('../middleware/authMiddleware');
+
 router.route('/')
     .get(getMedicines)
-    .post(addMedicine);
+    .post(protect, admin, addMedicine);
 
 router.route('/:id')
-    .put(updateMedicine)
-    .delete(deleteMedicine);
+    .put(protect, admin, updateMedicine)
+    .delete(protect, admin, deleteMedicine);
 
 module.exports = router;

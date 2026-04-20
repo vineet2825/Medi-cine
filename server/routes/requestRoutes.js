@@ -8,14 +8,16 @@ const {
     getUserRequests
 } = require('../controllers/requestController');
 
-router.route('/')
-    .get(getRequests)
-    .post(createRequest);
+const { protect, admin } = require('../middleware/authMiddleware');
 
-router.route('/user/:userName').get(getUserRequests);
+router.route('/')
+    .get(protect, admin, getRequests)
+    .post(protect, createRequest);
+
+router.route('/user/:userName').get(protect, getUserRequests);
 
 router.route('/:id')
-    .put(updateRequest)
-    .delete(deleteRequest);
+    .put(protect, admin, updateRequest)
+    .delete(protect, admin, deleteRequest);
 
 module.exports = router;
