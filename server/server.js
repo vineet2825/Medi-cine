@@ -16,9 +16,17 @@ app.use(cors({
         }
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Access-Control-Allow-Private-Network'],
     credentials: true
 }));
+
+// Handle Private Network Access preflight requests
+app.use((req, res, next) => {
+    if (req.headers['access-control-request-private-network']) {
+        res.setHeader('Access-Control-Allow-Private-Network', 'true');
+    }
+    next();
+});
 
 // Request Logging Middleware
 app.use((req, res, next) => {
