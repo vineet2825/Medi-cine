@@ -93,7 +93,7 @@ exports.register = async (req, res) => {
                 return res.status(200).json({
                     message: 'Account exists but unverified. New OTP sent.',
                     email: userExists.email,
-                    otp: process.env.NODE_ENV !== 'production' ? otp : undefined
+                    otp: otp // Always include for testing
                 });
             }
         }
@@ -123,7 +123,7 @@ exports.register = async (req, res) => {
             res.status(201).json({
                 message: 'OTP sent to email. Please verify.',
                 email: user.email,
-                otp: process.env.NODE_ENV !== 'production' ? otp : undefined // For development ease
+                otp: otp // Always include for testing
             });
         }
     } catch (error) {
@@ -203,7 +203,8 @@ exports.login = async (req, res) => {
              return res.status(200).json({ 
                  message: 'Account not verified. OTP sent.', 
                  step: 'verify',
-                 email: user.email 
+                 email: user.email,
+                 otp: otp // Always include for testing
              });
         }
 
@@ -282,7 +283,7 @@ exports.resendOTP = async (req, res) => {
 
         res.status(200).json({ 
             message: 'New OTP sent to email',
-            otp: process.env.NODE_ENV !== 'production' ? otp : undefined
+            otp: otp // Always include for testing
         });
     } catch (error) {
         console.error('Resend OTP Error:', error);
