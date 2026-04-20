@@ -1,4 +1,9 @@
 {
+  "scripts": {
+    "start": "npm start --prefix server",
+    "install-server": "npm install --prefix server",
+    "build": "echo 'No build needed for server'"
+  },
   "dependencies": {
     "mongodb-memory-server": "^11.0.1"
   }
