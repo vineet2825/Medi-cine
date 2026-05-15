@@ -423,47 +423,6 @@ body {
   font-weight: 400;
 }
 
-/* OTP Specific Styles */
-.otp-input-field {
-  width: 100%;
-  padding: 1rem;
-  font-size: 2rem !important;
-  font-weight: 800 !important;
-  letter-spacing: 0.8rem !important;
-  text-align: center;
-  border: 2px solid var(--border-color);
-  border-radius: 12px;
-  margin: 1.5rem 0;
-  color: var(--primary-color) !important;
-  transition: all 0.3s ease;
-  background: #f8fafc;
-}
-
-.otp-input-field:focus {
-  border-color: var(--primary-color);
-  background: white;
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
-  transform: scale(1.02);
-}
-
-.resend-container {
-  margin: 1.5rem 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.timer-text {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-}
-
-.timer-text span {
-  color: var(--primary-color);
-  font-weight: 700;
-  min-width: 30px;
-  display: inline-block;
-}
 
 .auth-footer {
   margin-top: 2.5rem;
@@ -536,4 +495,44 @@ body {
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+/* Tab Navigation Styles */
+.admin-tabs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 0.5rem;
+}
+
+.tab-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  font-size: 1rem;
+}
+
+.tab-btn:hover {
+  color: var(--primary-color);
+}
+
+.tab-btn.active {
+  color: var(--primary-color);
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -0.6rem;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-color: var(--primary-color);
+  border-radius: 3px;
 }

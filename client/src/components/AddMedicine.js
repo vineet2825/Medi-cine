@@ -117,22 +117,16 @@ const AddMedicine = () => {
                             <tr>
                                 <th>Medicine Name</th>
                                 <th>Manufacturer</th>
-                                <th>Status</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             {catalog.length === 0 ? (
-                                <tr><td colSpan="4" className="text-center">No tablets listed in the system yet.</td></tr>
+                                <tr><td colSpan="3" className="text-center">No tablets listed in the system yet.</td></tr>
                             ) : catalog.map(med => (
                                 <tr key={med._id}>
                                     <td><strong>{med.name}</strong></td>
                                     <td>{med.company}</td>
-                                    <td>
-                                        <span className={`badge ${med.inStock ? 'approved' : 'rejected'}`}>
-                                            {med.inStock ? 'Available' : 'Out of Stock'}
-                                        </span>
-                                    </td>
                                     <td>
                                         <button 
                                             type="button" 
@@ -237,23 +231,17 @@ const AddMedicine = () => {
                                     <th>Company</th>
                                     <th>Qty</th>
                                     <th>Date</th>
-                                    <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {userHistory.length === 0 ? (
-                                    <tr><td colSpan="5" className="text-center">No history found.</td></tr>
+                                    <tr><td colSpan="4" className="text-center">No history found.</td></tr>
                                 ) : userHistory.map(req => (
                                     <tr key={req._id}>
                                         <td><strong>{req.medicineName}</strong></td>
                                         <td>{req.companyName}</td>
                                         <td>{req.quantity}</td>
                                         <td>{new Date(req.requiredDate).toLocaleDateString()}</td>
-                                        <td>
-                                            <span className={`badge ${req.status.toLowerCase()}`}>
-                                                {req.status}
-                                            </span>
-                                        </td>
                                     </tr>
                                 ))}
                             </tbody>

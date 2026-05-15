@@ -8,7 +8,6 @@ import './App.css';
 // Lazy loading components for performance optimization
 const AddMedicine = lazy(() => import('./components/AddMedicine'));
 const AdminPanel = lazy(() => import('./components/AdminPanel'));
-const AdminUserList = lazy(() => import('./components/AdminUserList'));
 const Login = lazy(() => import('./components/Login'));
 const Register = lazy(() => import('./components/Register'));
 
@@ -24,7 +23,6 @@ const Navbar = () => {
             {user.role === 'admin' && (
               <>
                 <Link to="/admin">Dashboard</Link>
-                <Link to="/admin/users">Users</Link>
               </>
             )}
             <span className="user-name">Welcome, {user.name}</span>
@@ -61,11 +59,6 @@ function App() {
                 <Route path="/admin" element={
                   <ProtectedRoute adminOnly={true}>
                     <AdminPanel />
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin/users" element={
-                  <ProtectedRoute adminOnly={true}>
-                    <AdminUserList />
                   </ProtectedRoute>
                 } />
               </Routes>

@@ -93,3 +93,33 @@ exports.getMe = async (req, res) => {
         res.status(404).json({ message: 'User not found' });
     }
 };
+
+// @desc    Update user role (Admin only)
+// @route   PUT /api/auth/users/:id/role
+// @access  Private/Admin
+exports.updateUserRole = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Prevent admin from changing their own role (optional but good practice)
+        if (user._id.toString() === req.user.id.toString()) {
+            return res.status(400).json({ message: 'Cannot change your own role' });
+        }
+
+        user.role = req.body.role || user.role;
+        const updatedUser = await user.save();
+
+        res.json({
+            _id: updatedUser._id,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            role: updatedUser.role
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
