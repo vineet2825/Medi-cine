@@ -178,14 +178,26 @@ const AdminPanel = () => {
                                         <td><strong>{med.name}</strong></td>
                                         <td>{med.company}</td>
                                         <td>
-                                            <span className={`badge ${med.inStock ? 'approved' : 'rejected'}`}>
-                                                {med.inStock ? 'In Stock' : 'Out of Stock'}
-                                            </span>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                <label className="switch">
+                                                    <input 
+                                                        type="checkbox" 
+                                                        checked={med.inStock} 
+                                                        onChange={() => handleStockToggle(med._id)} 
+                                                    />
+                                                    <span className="slider"></span>
+                                                </label>
+                                                <span style={{ 
+                                                    fontSize: '0.85rem', 
+                                                    fontWeight: '600', 
+                                                    color: med.inStock ? 'var(--success-color)' : 'var(--danger-color)',
+                                                    minWidth: '85px'
+                                                }}>
+                                                    {med.inStock ? 'In Stock' : 'Out of Stock'}
+                                                </span>
+                                            </div>
                                         </td>
                                         <td className="actions">
-                                            <button className="btn btn-sm btn-outline" onClick={() => handleStockToggle(med._id)}>
-                                                Toggle Stock
-                                            </button>
                                             <button className="btn btn-sm btn-danger" onClick={() => handleDeleteMedicine(med._id)}>
                                                 Delete
                                             </button>
